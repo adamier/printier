@@ -1,0 +1,52 @@
+select 
+
+case 
+	when O.store_id is not null then '05.PRINTI_POINT'
+	when O.service_type = 'PRINTI_PRO' then '04.PRINTI_PRO'
+	when O.sales_user_id in (353 , 354 , 355 , 356 , 357 , 358 , 359 , 360 , 361 , 362 , 363 , 364 , 365 , 366 , 367 , 368 , 369 , 370 , 371 , 405 , 456 , 561 , 562 , 563 , 564 , 565 , 566 , 589 , 660) then '03.CORPORATE'
+	when O.sales_user_id is not null then '02.INSIDE_SALES'
+	when O.sales_user_id is null then '01.ONLINE'
+	end as 'CHANNEL',
+count(O.id) as 'ORDERS',
+round(sum(O.total_price_before_discount),0) as 'TOTAL_PRICE',
+round(sum(O.total_discount_price),0) AS 'DISCOUNT',
+round(sum(O.total_price),0) as 'FINAL_VALUE'
+
+from alpha.order O
+
+left join alpha.user U on U.id = O.sales_user_id
+left join alpha.order_invoice OI on OI.order_id = O.id
+left join alpha.customer C on C.id = O.customer_id
+
+where 
+	year(OI.emission_date) = year(current_date())
+    and month(OI.emission_date) = month(current_date())
+	and O.status_id <> 7
+    and O.locale in ('BR')
+    and OI.type = 'NFSE'
+    
+group by CHANNEL
+    
+UNION
+
+select	case 
+	when O.store_id is not null then '10.PRINTI_POINT'
+	when O.service_type = 'PRINTI_PRO' then '09.PRINTI_PRO'
+	when O.sales_user_id in (353 , 354 , 355 , 356 , 357 , 358 , 359 , 360 , 361 , 362 , 363 , 364 , 365 , 366 , 367 , 368 , 369 , 370 , 371 , 405 , 456 , 561 , 562 , 563 , 564 , 565 , 566 , 589 , 660) then '08.CORPORATE'
+	when O.sales_user_id is not null then '07.INSIDE_SALES'
+	when O.sales_user_id is null then '06.ONLINE'
+	end as 'CHANNEL',
+count(O.id) as 'ORDERS',
+round(sum(O.total_price_before_discount),0) as 'TOTAL_PRICE',
+round(sum(O.total_discount_price),0) AS 'DISCOUNT',
+round(sum(O.total_price),0) as 'FINAL_VALUE'
+
+from alpha.order O
+
+where 
+	date(O.created_at) = current_date()
+	and O.status_id <> 7
+    and O.locale in ('BR')    
+
+group by CHANNEL
+order by 1
